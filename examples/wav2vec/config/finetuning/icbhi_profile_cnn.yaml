@@ -1,0 +1,90 @@
+# @package _group_
+
+common:
+  fp16: false
+  log_format: json
+  log_interval: 200
+  wandb_project: RoPADet_icbhi_cnn
+
+checkpoint:
+  save_interval: 1
+  save_interval_updates: 0
+  keep_interval_updates: 1
+  no_epoch_checkpoints: true
+  best_checkpoint_metric: icbhi
+  maximize_best_checkpoint_metric: true
+  # restore_file: / media/SSD/tungtk2/fairseq/outputs/2022-03-22/13-57-49/checkpoints/checkpoint_last.pt
+  # patience: 15
+
+task:
+  _name: audio_finetuning
+  data: ???
+  normalize: false
+  labels: label
+  profiling: true
+  # profiles_path: /media/SSD/tungtk2/fairseq/outputs/2022-06-22/14-26-59/checkpoints/profile.pt
+  auto_encoder: false
+  sup_contrast: false
+  num_mels: 192
+
+dataset:
+  num_workers: 2
+  batch_size: 64
+  skip_invalid_size_inputs_valid_test: true
+  # validate_after_updates: 50
+  # validate_interval: 1000
+  valid_subset: valid
+
+distributed_training:
+  ddp_backend: legacy_ddp
+  distributed_world_size: 2
+
+criterion:
+  _name: RoPADet
+  # zero_infinity: true
+  # positive_class_weight: -1
+  class_weights: [3.636, 1.859, 0.886, 0.506]
+  # class_weights: [1.0, 1.0, 1.0, 1.0]
+  loss_weights: [0.9999, 0.0001]
+
+optimization:
+  # max_update: 8600
+  max_update: 4000000
+  sentence_avg: true
+  update_freq: [1]
+  max_epoch: 200
+  lr: [1e-4]
+  # clip_norm: 1.25
+
+optimizer:
+  _name: adam
+  # momentum: 0.9
+  # lr: [1e-4]
+  adam_betas: (0.9,0.98)
+  adam_eps: 1e-08
+  weight_decay: 4e-3
+
+lr_scheduler:
+  # _name: tri_stage
+  # phase_ratio: [0.05, 0.75, 0.2]
+  # final_lr_scale: 0.05
+  _name: fixed
+
+model:
+  _name: CNN_NPN
+  profile_extractor_path: ???
+  no_pretrained_weights: true
+  apply_mask: true
+  mask_prob: 0.3
+  mask_channel_prob: 0.25
+  mask_channel_length: 32
+  layerdrop: 0.2
+  activation_dropout: 0.2
+  feature_grad_mult: 1
+  freeze_finetune_updates: 0
+  final_dropout: 0.2
+  decoder_embed_dim: 256
+  clf_hidden_dim: 256
+  clf_dropout_rate: 0.2
+  clf_output_dim: 4
+  batch_mask: true
